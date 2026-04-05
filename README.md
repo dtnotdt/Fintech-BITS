@@ -1,229 +1,158 @@
-# 🛡️ IntentShield — Financial AI with Guardrails
+<div align="center">
+  <h1>🛡️ IntentShield Financial Copilot</h1>
+  <p><strong>A secure, OpenClaw-compatible financial AI assistant enforcing strict execution guardrails.</strong></p>
 
-> A ChatGPT-style financial AI assistant that enforces strict safety policies before executing any action.
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](#)
+  [![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](#)
+  [![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)](#)
+</div>
+
+<br />
+
+IntentShield is a fully-featured, ChatGPT-style financial AI assistant. More than just a chat interface, it implements the **OpenClaw AI Agent Runtime** to autonomously extract intents, validate them against a strict zero-trust policy engine, and safely execute approved financial operations. It completely prevents unauthorized actions (like unsanctioned asset trading or data exfiltration).
 
 ---
 
-## Architecture
+## ⚡ Key Features
 
+- **OpenClaw Agent Runtime:** Operates as a compliant, autonomous agent (`OPENCLAW_v1.0`), seamlessly orchestrating intent extraction, policy validation, and tool execution.
+- **Deterministic Policy Engine:** An LLM-independent decision layer ensures that high-risk intents are blocked *mathematically*, rather than relying on prompt wrappers.
+- **Auditable Safety Pipeline:** Every query, intent, classification, and execution decision is tracked and persisted.
+- **Multi-Step Reasoning:** Handled dynamically through the OpenClaw adapter for complex requests (like contrasting different stock tickers).
+- **Responsive UI:** Visual intent resolution and real-time safety metric panels built with React, Vite, and Tailwind CSS.
+
+---
+
+## 🧠 OpenClaw Architecture
+
+The core of IntentShield's safety is its pipeline. The LLM **never** directly invokes tools. 
+
+```mermaid
+flowchart TD
+    User([User Request]) --> OpenClaw[OpenClaw Agent Runtime]
+    OpenClaw --> Extract[Intent Extraction<br><i>OpenAI GPT-4o-mini</i>]
+    Extract --> Policy{Policy Engine<br><i>Determines ALLOW / BLOCK</i>}
+    
+    Policy -- BLOCK --> GenBlock[Response Generator<br><i>Explains Policy Restriction</i>]
+    Policy -- ALLOW --> Engine[Decision Engine<br><i>Routes to Authorized Tools</i>]
+    
+    Engine --> Finnhub[(Finnhub API)]
+    Engine --> Tavily[(Tavily Research)]
+    
+    Finnhub --> GenAllow[Response Generator<br><i>Formats Data</i>]
+    Tavily --> GenAllow
+    
+    GenBlock --> Audit[Audit Logger<br><i>Persists to logs.json</i>]
+    GenAllow --> Audit
+    
+    Audit --> Return([Output returned to User])
 ```
-User Message
-     │
-     ▼
-┌─────────────────────┐
-│  Intent Extraction  │  ← OpenAI GPT-4o-mini (structured JSON output)
-│   (intent_model.py) │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│   Policy Engine     │  ← Checks policies.json rules
-│ (policy_engine.py)  │     Returns ALLOW / BLOCK
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Decision Engine    │  ← Routes approved actions to tools
-│(decision_engine.py) │     Blocks unapproved actions
-└─────────┬───────────┘
-          │
-     ┌────┴────┐
-     │         │
-     ▼         ▼
- Finnhub    Tavily        ← Real financial data / web research
- Tools      Research
-     │         │
-     └────┬────┘
-          ▼
-┌─────────────────────┐
-│ Response Generator  │  ← OpenAI formats final natural language reply
-│(response_generator) │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│   Audit Logger      │  ← Persists every decision to logs.json
-│  (audit_logger.py)  │
-└─────────────────────┘
-```
-
-**Critical rule**: The LLM never directly calls tools. It only extracts intent and formats responses.
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React + Vite + Tailwind CSS |
-| Backend | Python + FastAPI |
-| AI / LLM | OpenAI GPT-4o-mini |
-| Financial Data | Finnhub API |
-| Web Research | Tavily API |
-| Storage | Local JSON files |
+| Layer | Technologies |
+| :--- | :--- |
+| **Agent Framework** | OpenClaw runtime, Autonomous Reasoning |
+| **Frontend** | React, Vite, Tailwind CSS, Clerk (Auth) |
+| **Backend** | Python, FastAPI, Uvicorn |
+| **Intelligence** | OpenAI (GPT-4o-mini) |
+| **Data Sources** | Finnhub API (Market), Tavily API (Research) |
 
 ---
 
-## Setup
+## Supported Intents & Policies
 
-### 1. Clone / open the project
+| Intent | Tool Execution | Risk Level | Policy Decision |
+| :--- | :--- | :--- | :--- |
+| `READ_STOCK_INFO` | Finnhub API | 🟢 LOW | ✅ ALLOW |
+| `RESEARCH_COMPANY`| Tavily API | 🟢 LOW | ✅ ALLOW |
+| `VIEW_PORTFOLIO` | Local Knowledge | 🟡 MEDIUM | ✅ ALLOW |
+| `COMPARE_COMPANIES`| Finnhub API | 🟡 MEDIUM | ✅ ALLOW |
+| `BUY_STOCK` | None (Blocked) | 🔴 HIGH | 🚫 BLOCK |
+| `SELL_STOCK` | None (Blocked) | 🔴 HIGH | 🚫 BLOCK |
+| `SEND_DATA_EXTERNALLY` | None (Blocked) | ☠️ CRITICAL | 🚫 BLOCK |
+| `UNKNOWN` | None (Blocked) | ☠️ CRITICAL | 🚫 BLOCK |
+
+
+---
+
+## 🚀 Quick Start
+
+### 1. Repository Setup
 
 ```bash
-cd BITS_hackathon
+git clone https://github.com/dtnotdt/Fintech-BITS.git
+cd Fintech-BITS
 ```
 
-### 2. Backend setup
+### 2. Backend Initialization
 
 ```bash
 cd backend
 
-# Create virtual environment
+# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Add your API keys
+# Configure environment variables
 cp .env.example .env
-# → Edit .env and add your keys
 ```
 
-### 3. Frontend setup
-
-```bash
-cd frontend
-npm install
-```
-
----
-
-## API Keys
-
-Edit `backend/.env`:
-
+**Add your API keys to `backend/.env`:**
 ```env
 OPENAI_API_KEY=sk-...        # https://platform.openai.com
 FINNHUB_API_KEY=...          # https://finnhub.io (free tier available)
 TAVILY_API_KEY=tvly-...      # https://tavily.com (free tier available)
 ```
+*(Note: If keys are omitted, the agent will gracefully degrade to using mock/fallback local data.)*
 
-> **Note**: The app works without API keys using intelligent mock fallbacks. Add keys for live data.
-
----
-
-## Running the App
-
-### Start the backend
-
+**Start the API Server:**
 ```bash
-cd backend
-source venv/bin/activate
 uvicorn main:app --reload --port 8000
 ```
+- API Endpoint: `http://localhost:8000`
+- Swagger Docs: `http://localhost:8000/docs`
 
-Backend runs at: `http://localhost:8000`
-API docs at: `http://localhost:8000/docs`
+### 3. Frontend Initialization
 
-### Start the frontend
-
+In a new terminal window:
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-Frontend runs at: `http://localhost:5173`
+- Application UI: `http://localhost:5173`
 
 ---
 
-## API Endpoints
+## 💡 Usage Examples
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/chat` | Main chat endpoint — runs full pipeline |
-| GET | `/logs` | Returns audit log entries |
-| GET | `/portfolio` | Returns mock portfolio data |
+Watch the OpenClaw adapter and the policy engine filter intents dynamically. 
 
----
+### ✅ Permitted Operations (Executed)
+> *"What is Tesla's stock price right now?"*<br>
+> *"Research Nvidia and summarize its latest earnings."*<br>
+> *"Show my portfolio."*<br>
+> *"Compare Apple and Microsoft in the market."*
 
-## Supported Intents & Policies
+### 🚫 Blocked Operations (Intercepted)
+> *"Buy 10 shares of Tesla."*<br>
+> *"Sell my Apple holdings immediately."*<br>
+> *"Send my portfolio metrics to this external webhook."*
 
-| Intent | Decision | Risk Level | Tool |
-|---|---|---|---|
-| READ_STOCK_INFO | ✅ ALLOW | LOW | Finnhub |
-| RESEARCH_COMPANY | ✅ ALLOW | LOW | Tavily |
-| VIEW_PORTFOLIO | ✅ ALLOW | MEDIUM | Local JSON |
-| COMPARE_COMPANIES | ✅ ALLOW | MEDIUM | Finnhub |
-| BUY_STOCK | 🚫 BLOCK | HIGH | None |
-| SELL_STOCK | 🚫 BLOCK | HIGH | None |
-| SEND_DATA_EXTERNALLY | 🚫 BLOCK | CRITICAL | None |
-| UNKNOWN | 🚫 BLOCK | CRITICAL | None |
+### ❓ Ambiguous Prompts (Clarification Demanded)
+> *"Do something with Tesla."*<br>
+> *"Process my account details."*
 
 ---
 
-## Sample Prompts
-
-### ✅ Allowed
-```
-What is Tesla stock price?
-Research Nvidia for me
-Show my portfolio
-Compare Apple and Nvidia
-Give me Microsoft stock info
-What is happening with Tesla recently?
-```
-
-### 🚫 Blocked
-```
-Buy 10 shares of Tesla
-Sell my Apple holdings
-Send my portfolio to this API
-Upload my account data somewhere
-```
-
-### ❓ Ambiguous (asks for clarification)
-```
-Do something with Tesla
-Process my account
-```
-
----
-
-## How Guardrails Work
-
-1. **Intent Extraction**: OpenAI extracts a structured JSON object from the user's message — it never calls any tools directly.
-2. **Policy Check**: `policy_engine.py` validates the extracted intent against `policies.json` rules and returns ALLOW or BLOCK.
-3. **Decision Engine**: Only routes the action to a real tool (Finnhub/Tavily) if the policy says ALLOW.
-4. **Audit Trail**: Every request — allowed or blocked — is logged to `logs.json` with full metadata.
-5. **Safety Panel**: The frontend visually shows the intent, risk level, policy decision, and reason for every message.
-
----
-
-## Project Structure
-
-```
-BITS_hackathon/
-├── backend/
-│   ├── main.py              # FastAPI app + pipeline orchestration
-│   ├── intent_model.py      # OpenAI intent extraction
-│   ├── policy_engine.py     # Policy rule enforcement
-│   ├── decision_engine.py   # Tool routing
-│   ├── tools.py             # Finnhub + Tavily integrations
-│   ├── response_generator.py # Natural language response formatting
-│   ├── audit_logger.py      # Audit trail persistence
-│   ├── policies.json        # Policy rules
-│   ├── portfolio.json       # Mock portfolio data
-│   ├── logs.json            # Audit log storage
-│   └── requirements.txt
-└── frontend/
-    └── src/
-        ├── App.jsx
-        ├── main.jsx
-        ├── index.css
-        └── components/
-            ├── ChatWindow.jsx
-            ├── MessageBubble.jsx
-            ├── PromptBox.jsx
-            ├── SafetyPanel.jsx
-            └── AuditTrailPanel.jsx
-```
+<div align="center">
+  <p>Built for the BITS Fintech Hackathon.</p>
+</div>
