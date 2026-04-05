@@ -1,0 +1,79 @@
+{
+  "policies": {
+    "READ_STOCK_INFO": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Read-only stock lookup is safe and informational."
+    },
+    "RESEARCH_COMPANY": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Web research is read-only and non-destructive."
+    },
+    "LIST_COMPANIES": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "General finance company lists are safe to share."
+    },
+    "ADD_TO_WATCHLIST": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Adding a company to a personal watchlist is a safe, non-destructive personal action."
+    },
+    "VIEW_WATCHLIST": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Viewing a personal watchlist is permitted."
+    },
+    "VIEW_PORTFOLIO": {
+      "decision": "ALLOW",
+      "risk_level": "MEDIUM",
+      "reason": "Viewing portfolio data is permitted for authenticated users."
+    },
+    "COMPARE_COMPANIES": {
+      "decision": "ALLOW",
+      "risk_level": "MEDIUM",
+      "reason": "Company comparisons use read-only data sources."
+    },
+    "MULTI_STEP_ANALYSIS": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Multi-step financial analysis is read-only and informational."
+    },
+    "GET_PAPER_POSITIONS": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Viewing simulated paper trading positions is safe and read-only."
+    },
+    "GET_PAPER_ORDERS": {
+      "decision": "ALLOW",
+      "risk_level": "LOW",
+      "reason": "Viewing simulated paper order history is safe and read-only."
+    },
+    "BUY_STOCK": {
+      "decision": "REQUIRES_CONFIRMATION",
+      "risk_level": "HIGH",
+      "reason": "Buy orders require explicit user confirmation before execution in the paper trading environment."
+    },
+    "SELL_STOCK": {
+      "decision": "REQUIRES_CONFIRMATION",
+      "risk_level": "HIGH",
+      "reason": "Sell orders require explicit user confirmation before execution in the paper trading environment."
+    },
+    "CONFIRM_TRADE": {
+      "decision": "ALLOW",
+      "risk_level": "HIGH",
+      "reason": "User has explicitly confirmed the trade. Routing to paper trading execution."
+    },
+    "SEND_DATA_EXTERNALLY": {
+      "decision": "BLOCK",
+      "risk_level": "CRITICAL",
+      "reason": "Sending financial data to external endpoints is strictly prohibited."
+    },
+    "UNKNOWN": {
+      "decision": "CLARIFY",
+      "risk_level": "LOW",
+      "reason": "Request is ambiguous. Proceeding to clarify or infer from context."
+    }
+  }
+}

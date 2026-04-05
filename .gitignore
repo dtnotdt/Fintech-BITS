@@ -1,0 +1,40 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Distribution / Build
+dist/
+build/
+.next/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Editor / System
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project specific files (if any)
+paper_orders.json
+paper_positions.json
+portfolio.json
+logs.json
+watchlist.json
