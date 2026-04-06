@@ -8,7 +8,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def generate_response(
+def _generate_core_response(
     user_message: str,
     intent_data: dict,
     policy_result: dict,
@@ -209,7 +209,7 @@ def _fallback_response(intent_data: dict, policy_result: dict, decision_result: 
         )
 
     elif intent == "CONFIRM_TRADE":
-        order_result = result.get("order", {})
+        order_result = result.get("task_receipt", {})
         oid = order_result.get("order_id", "?")
         sym = order_result.get("symbol", "?")
         qty = order_result.get("qty", "?")
@@ -277,3 +277,32 @@ def _fallback_response(intent_data: dict, policy_result: dict, decision_result: 
         return "\n".join(lines)
 
     return f"✅ Action completed via {tool}."
+
+def generate_response(
+    user_message: str,
+    intent_data: dict,
+    policy_result: dict,
+    decision_result: dict,
+) -> str:
+    inner_reply = _generate_core_response(user_message, intent_data, policy_result, decision_result)
+    
+    intent = policy_result.get("intent", "UNKNOWN")
+    risk_score = policy_result.get("risk_level", "UNKNOWN")
+    delegation_path = decision_result.get("tool_used", "None") or "None"
+    if "EXECUTION_PROXIMAL" in delegation_path:
+        delegation_path = "Internal -> ArmorClaw_SubAgent"
+    decision = policy_result.get("decision", "UNKNOWN")
+    passed_rejected = "PASSED" if decision in ["ALLOW", "REQUIRES_CONFIRMATION"] else "REJECTED"
+        
+    banner = (
+        "┌──────────────────────────────────────────────────────────┐\n"
+        "│ ⚡ ARMORCLAW ACTIVE | 🛰️ LIVE ALPACA FEED | 🛡️ ZERO TRUST   │\n"
+        "└──────────────────────────────────────────────────────────┘\n\n"
+        "**[SHIELD_LOG]**\n"
+        f"- **Detected Intent:** [{intent}]\n"
+        f"- **Risk Score:** [{risk_score}]\n"
+        f"- **Delegation Path:** [{delegation_path}]\n"
+        f"- **Policy Check:** [{passed_rejected}]\n\n"
+    )
+    
+    return banner + inner_reply

@@ -3,7 +3,8 @@ import os
 import re
 
 from tools import get_stock_price, get_company_profile, compare_companies, research_company
-import paper_trading
+import alpaca_trading
+from sub_agents import execution_proximal_agent
 
 PORTFOLIO_PATH = os.path.join(os.path.dirname(__file__), "portfolio.json")
 WATCHLIST_PATH = os.path.join(os.path.dirname(__file__), "watchlist.json")
@@ -248,16 +249,18 @@ def execute_decision(intent_data: dict, policy_result: dict, context: list = Non
                 "block_reason": "For your security, please provide your 4-digit PIN alongside your confirmation (e.g. 'yes confirm 1234')."
             }
 
-        result = paper_trading.place_order(pending["symbol"], pending["qty"], pending["side"])
-        return {"executed": True, "tool_used": "Paper Trading Engine", "result": result}
+        # Delegate to EXECUTION_PROXIMAL sub-agent
+        trade_intent = {"intent": "BUY_STOCK" if pending["side"] == "buy" else "SELL_STOCK", "symbol": pending["symbol"], "quantity": pending["qty"]}
+        result = execution_proximal_agent.execute_delegated_task(trade_intent)
+        return {"executed": True, "tool_used": "EXECUTION_PROXIMAL (Sub-Agent)", "result": result}
 
     elif intent == "GET_PAPER_POSITIONS":
-        result = paper_trading.get_positions()
-        return {"executed": True, "tool_used": "Paper Trading Engine", "result": result}
+        result = alpaca_trading.get_positions()
+        return {"executed": True, "tool_used": "Alpaca Live Trading Engine", "result": result}
 
     elif intent == "GET_PAPER_ORDERS":
-        result = paper_trading.get_orders()
-        return {"executed": True, "tool_used": "Paper Trading Engine", "result": result}
+        result = alpaca_trading.get_orders()
+        return {"executed": True, "tool_used": "Alpaca Live Trading Engine", "result": result}
 
     elif intent == "MULTI_STEP_ANALYSIS":
         companies = intent_data.get("companies", [])

@@ -10,7 +10,7 @@ from policy_engine import check_policy
 from decision_engine import execute_decision
 from response_generator import generate_response
 from audit_logger import log_decision, get_all_logs
-from openclaw_adapter import OpenClawAgent
+from armorclaw_namespace import ArmorClawPlugin
 
 load_dotenv()
 
@@ -41,8 +41,8 @@ async def chat(req: ChatRequest):
     if not user_message:
         return {"error": "Empty message"}
 
-    # ── OpenClaw Agent Runtime ────────────────────────────────────────────────
-    agent = OpenClawAgent()
+    # ── ArmorClaw Plugin Runtime ──────────────────────────────────────────────
+    agent = ArmorClawPlugin()
     agent_output = agent.execute(user_message, req.context)
     
     intent_data = agent_output["intent_data"]
